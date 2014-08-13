@@ -14,14 +14,14 @@ object Sample {
     data.saveToEs("spark/docs")
 
     // For cases where the data in the RDD is already in JSON
-    val data2 = sc.makeRDD(Seq("""{ "reason":"business", "airport":"SFO" }"""))
-    data2.saveJsonToEs("spark/json-trips")
+    val data2 = sc.makeRDD(Seq("""{ "one":11, "two":12, "three":13 }"""))
+    data2.saveJsonToEs("spark/docs")
 
     /** reading */
-    val rdd = sc.esRDD("spark/docs" ,"?t*")
-    val data3 = rdd.map(_.mkString(","))
+    val rdd = sc.esRDD("spark/docs" ,"?pretty=true")
+    val data3 = rdd.map(_.mkString(":"))
 
-    println(s"----------- ${data3.collect} -----------")
+    println(s"----------- ${data3.collect.mkString(", ")} -----------")
   }
 
 }
