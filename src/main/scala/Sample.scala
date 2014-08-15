@@ -1,5 +1,4 @@
 import org.apache.spark.{SparkConf, SparkContext}
-//import org.apache.spark.SparkContext._
 
 import org.elasticsearch.spark._
 
@@ -22,6 +21,18 @@ object Sample {
     val data3 = rdd.map(_.mkString(":"))
 
     println(s"----------- ${data3.collect.mkString(", ")} -----------")
+
+    // For cases where the data in the RDD is already in JSON
+    val data4 = sc.makeRDD(Seq("""{ "one":{"foo":1, "bar":2 } }"""))
+    data4.saveJsonToEs("spark/nested")
+    val rdd2 = sc.esRDD("spark/nested", "?pretty=true")
+    val data5 = rdd2.map { x =>
+      println("+++" + x.head._2.getClass)
+      x.mkString(":")
+    }
+
+    println(s"*********** ${data5.collect.mkString(", ")} ***********")
+
   }
 
 }
