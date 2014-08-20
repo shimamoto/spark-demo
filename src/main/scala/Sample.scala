@@ -27,7 +27,6 @@ object Sample {
     data4.saveJsonToEs("spark/nested")
     val rdd2 = sc.esRDD("spark/nested", "?pretty=true")
     val data5 = rdd2.map { x =>
-      println("+++" + x.head._2.getClass)
       x.mkString(":")
     }
 
