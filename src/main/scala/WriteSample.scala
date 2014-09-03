@@ -9,7 +9,7 @@ object WriteSample extends App {
     ES_RESOURCE_READ   -> "spark/docs",
     ES_RESOURCE_WRITE  -> "docker/docs",
     ES_QUERY           -> """{"query" : { "ids" : { "values" : [ "100", "101" ] } } }""",
-    ES_WRITE_OPERATION -> "upsert",
+    ES_WRITE_OPERATION -> ES_OPERATION_UPSERT,
     ES_MAPPING_ID      -> "one"
   ))
 
