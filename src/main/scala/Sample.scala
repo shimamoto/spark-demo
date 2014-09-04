@@ -9,7 +9,7 @@ object Sample {
 
     /** writing */
     // creates RDD based on the collection specified
-    val data = sc.makeRDD(Seq(Map("one" -> 1, "two" -> 2, "three" -> 3)))
+    val data = sc.makeRDD(Seq(Map("one" -> 100, "two" -> 200, "three" -> 300)))
     data.saveToEs("spark/docs")
 
     // For cases where the data in the RDD is already in JSON
