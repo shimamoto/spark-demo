@@ -6,13 +6,11 @@ scalaVersion := "2.11.1"
 
 crossScalaVersions := Seq("2.10.4", "2.11.1")
 
-resolvers ++= Seq(
-  "Archiver Managed Spark Repository" at "https://repository.apache.org/content/repositories/orgapachespark-1030/"
-)
+resolvers ++= Seq()
 
 libraryDependencies ++= Seq(
-  "org.apache.spark"  % "spark-core_2.10" % "1.1.0" % "provided" changing(),
-  "org.elasticsearch" % "elasticsearch-spark_2.10" % "2.1.0.Beta1"
+  "org.apache.spark"  % "spark-core_2.10" % "1.1.0" % "provided",
+  "org.elasticsearch" % "elasticsearch-spark_2.10" % "2.1.0.Beta2" exclude("org.apache.spark", "spark-sql_2.10")
 )
 
 assemblySettings

@@ -22,10 +22,9 @@ package utils {
     def execute(conf: SparkConf) = {
       val sc = new SparkContext(conf)
       try {
-        sc.esRDD.flatMap {
-          _.headOption.map { case (_id, body) =>
-            body.asInstanceOf[collection.mutable.Map[String, Any]].toMap + ("two" -> (Math.random * 10).toInt)
-          }
+        sc.esRDD.flatMap { case (_id, body) =>
+          println("---------------" + _id)
+          body + ("two" -> (Math.random * 10).toInt)
         }.saveToEs(Map(ES_NODES -> "172.17.0.2"))
       } finally {
         sc.stop

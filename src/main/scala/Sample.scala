@@ -18,7 +18,7 @@ object Sample {
 
     /** reading */
     val rdd = sc.esRDD("spark/docs" ,"?pretty=true")
-    val data3 = rdd.map(_.mkString(":"))
+    val data3 = rdd.map(x => x._1 + ":" + x._2)
 
     println(s"----------- ${data3.collect.mkString(", ")} -----------")
 
@@ -27,7 +27,7 @@ object Sample {
     data4.saveJsonToEs("spark/nested")
     val rdd2 = sc.esRDD("spark/nested", "?pretty=true")
     val data5 = rdd2.map { x =>
-      x.mkString(":")
+      x._1 + ":" + x._2
     }
 
     println(s"*********** ${data5.collect.mkString(", ")} ***********")
