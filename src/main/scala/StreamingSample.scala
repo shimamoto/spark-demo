@@ -9,7 +9,7 @@ object StreamingSample {
       val ssc = new StreamingContext(conf, Seconds(5))
 
       import StreamingContext._
-      val definition = ssc.textFileStream(directory)
+      val dstream = ssc.textFileStream(directory)
         .flatMap(_ split " ")
         .map(_ -> 1)
         .reduceByKey(_ + _)
@@ -17,15 +17,15 @@ object StreamingSample {
           Map(key -> value)
         }
 
-      definition.foreachRDD { rdd =>
-        // TODO
-        println("target: " + rdd.count)
-        rdd.saveToEs("spark/big")
+      dstream.foreachRDD { rdd =>
+        rdd.cache
+        // saving data only if DStream is not empty
+        if(rdd.count > 0) rdd.saveToEs("spark/big")
       }
 
       ssc.start
       ssc.awaitTermination
-      ssc.stop()
+//      ssc.stop()
 
     } getOrElse {
       System.err.println("Usage: StreamingSample <directory>")
