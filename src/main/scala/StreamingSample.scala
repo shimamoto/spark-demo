@@ -23,9 +23,15 @@ object StreamingSample {
         if(rdd.count > 0) rdd.saveToEs("spark/big")
       }
 
+      // more better of StreamingListener ?
+      sys.ShutdownHookThread {
+        println("Gracefully stopping Spark Streaming Application")
+        ssc.stop(true, true)
+        println("Application stopped")
+      }
+
       ssc.start
       ssc.awaitTermination
-//      ssc.stop()
 
     } getOrElse {
       System.err.println("Usage: StreamingSample <directory>")
