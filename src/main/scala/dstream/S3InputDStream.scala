@@ -1,10 +1,12 @@
 package dstream
 
 import org.apache.hadoop.fs.{PathFilter, FileSystem, Path}
+import org.apache.hadoop.io.{Text, LongWritable}
 import org.apache.hadoop.mapreduce.InputFormat
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat
 import org.apache.spark.rdd.{UnionRDD, RDD}
-import org.apache.spark.streaming.{Time, StreamingContext}
-import org.apache.spark.streaming.dstream.InputDStream
+import org.apache.spark.streaming.{Time, StreamingContext}h
+import org.apache.spark.streaming.dstream.{DStream, InputDStream}
 
 import scala.io.Source
 import scala.reflect.ClassTag
@@ -95,5 +97,11 @@ class S3InputDStream[K: ClassTag, V: ClassTag, F <: InputFormat[K,V] : ClassTag]
     if (fs_ == null) fs_ = directoryPath.getFileSystem(context.sparkContext.hadoopConfiguration)
     fs_
   }
+
+}
+
+object S3InputDStream {
+  def apply(ssc: StreamingContext, directory: String): DStream[String] =
+    new S3InputDStream[LongWritable, Text, TextInputFormat](ssc, directory).map(_._2.toString)
 
 }

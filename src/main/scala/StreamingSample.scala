@@ -1,5 +1,3 @@
-import org.apache.hadoop.io.{Text, LongWritable}
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat
 import org.apache.spark._
 import org.apache.spark.streaming._
 import org.elasticsearch.spark._
@@ -13,7 +11,7 @@ object StreamingSample {
 
       import StreamingContext._
 //      val dstream = ssc.textFileStream(directory)
-      val dstream = new S3InputDStream[LongWritable, Text, TextInputFormat](ssc, directory).map(_._2.toString)
+      val dstream = S3InputDStream(ssc, directory)
         .flatMap(_ split " ")
         .map(_ -> 1)
         .reduceByKey(_ + _)
