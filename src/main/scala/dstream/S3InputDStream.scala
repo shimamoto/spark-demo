@@ -5,7 +5,7 @@ import org.apache.hadoop.io.{Text, LongWritable}
 import org.apache.hadoop.mapreduce.InputFormat
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat
 import org.apache.spark.rdd.{UnionRDD, RDD}
-import org.apache.spark.streaming.{Time, StreamingContext}h
+import org.apache.spark.streaming.{Time, StreamingContext}
 import org.apache.spark.streaming.dstream.{DStream, InputDStream}
 
 import scala.io.Source
