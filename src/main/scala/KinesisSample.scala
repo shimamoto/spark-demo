@@ -8,7 +8,8 @@ object KinesisSample {
   def main(args: Array[String]): Unit = {
     val interval = Seconds(30)
 
-    val spark = new StreamingContext(new SparkConf, interval)
+    val spark = new StreamingContext(
+      new SparkConf().set("spark.streaming.stopGracefullyOnShutdown", "true"), interval)
 
     val dstream = spark.union(
       // TODO shards size
@@ -30,11 +31,6 @@ object KinesisSample {
       .map(_ -> 1)
       .reduceByKey(_ + _)
       .print()
-
-//    sys.ShutdownHookThread {
-//      println("Gracefully stopping Spark Streaming Application")
-//      spark.stop(true, true)
-//    }
 
     spark.start
     spark.awaitTermination
