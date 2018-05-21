@@ -5,6 +5,7 @@ version := "1.0-SNAPSHOT"
 scalaVersion := "2.11.12"
 
 libraryDependencies ++= Seq(
+  "org.apache.spark"  %% "spark-sql"                   % "2.3.0" % "provided",
   "org.apache.spark"  %% "spark-streaming"             % "2.3.0" % "provided",
   "org.apache.spark"  %% "spark-streaming-kinesis-asl" % "2.3.0" excludeAll(
     ExclusionRule("org.apache.spark", "spark-streaming_2.11"),
