@@ -21,6 +21,9 @@ object StructuredStreaming {
       .groupBy("value")
       .count()
 
+    ds.createOrReplaceTempView("words")
+    spark.sql("select count(*) from words").show()
+
     val query = ds.writeStream
       .outputMode("complete")
       .format("console")
