@@ -17,12 +17,10 @@ object StructuredStreaming {
       .load()
 
     val ds = lines.as[String]
-      .flatMap(_ split " ")
-      .groupBy("value")
-      .count()
-
-    ds.createOrReplaceTempView("words")
-    spark.sql("select count(*) from words").show()
+      .withColumn("eventTime", $"value".cast("timestamp"))
+      .withWatermark("eventTime", "10 seconds")
+      .dropDuplicates()
+      .select($"eventTime".cast("long").as[Long])
 
     val query = ds.writeStream
       .outputMode("complete")
