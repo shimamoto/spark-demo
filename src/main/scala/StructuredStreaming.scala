@@ -19,8 +19,11 @@ object StructuredStreaming {
     val ds = lines.as[String]
       .withColumn("eventTime", $"value".cast("timestamp"))
       .withWatermark("eventTime", "10 seconds")
-      .dropDuplicates()
-      .select($"eventTime".cast("long").as[Long])
+      .groupBy(window($"eventTime", "5 seconds") as 'window)
+      .agg(count("*") as 'count)
+      .select($"window".getField("start").cast("long").as[Long], $"count".as[Long])
+//      .dropDuplicates()
+//      .select($"eventTime".cast("long").as[Long])
 
     val query = ds.writeStream
       .outputMode("complete")
