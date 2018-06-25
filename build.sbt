@@ -5,6 +5,10 @@ version := "1.0-SNAPSHOT"
 scalaVersion := "2.11.12"
 
 libraryDependencies ++= Seq(
+  "org.scalatest"     %% "scalatest"                   % "3.0.5" % "test",
+  "org.apache.spark"  %% "spark-core"                  % "2.3.0" % "test" classifier "tests",
+  "org.apache.spark"  %% "spark-sql"                   % "2.3.0" % "test" classifier "tests",
+  "org.apache.spark"  %% "spark-catalyst"              % "2.3.0" % "test" classifier "tests",
   "org.apache.spark"  %% "spark-sql"                   % "2.3.0" % "provided",
   "org.apache.spark"  %% "spark-streaming"             % "2.3.0" % "provided",
   "org.apache.spark"  %% "spark-streaming-kinesis-asl" % "2.3.0" excludeAll(
