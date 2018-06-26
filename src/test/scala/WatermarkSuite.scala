@@ -1,73 +1,97 @@
 import java.sql.Timestamp
 
 import org.apache.spark.sql.execution.streaming.MemoryStream
-import org.apache.spark.sql.functions.max
-import org.apache.spark.sql.streaming.StreamTest
+import org.apache.spark.sql.streaming.{GroupState, GroupStateTimeout, OutputMode, StreamTest}
+
+case class Document(eventTime: Timestamp, uid: String, data: String)
 
 class WatermarkSuite extends StreamTest {
   import testImplicits._
 
+  val stateFunc = (key: String, values: Iterator[Document], oldState: GroupState[Timestamp]) => {
+    val latest = values.maxBy(_.eventTime.getTime)
+
+    oldState.getOption.filter(_.after(latest.eventTime))
+      .map { x =>
+        // out of order data
+        Iterator.empty
+      }
+      .getOrElse {
+        oldState.update(latest.eventTime)
+        Iterator(latest)
+      }
+  }
+
   test("streaming - test watermark") {
     val input = MemoryStream[(String, String, String)]
-    val ds = input.toDF().toDF("created", "uid", "data")
-      .withColumn("created", $"created".cast("timestamp"))
-      .withWatermark("created", "10 seconds")
-      .groupBy("uid")
-      .agg(max("created"))
+    val ds = input.toDF().toDF("eventTime", "uid", "data")
+      .withColumn("eventTime", $"eventTime".cast("timestamp"))
+      .withWatermark("eventTime", "10 seconds")
+      .as[Document]
+      .groupByKey(_.uid)
+      .flatMapGroupsWithState(OutputMode.Update, GroupStateTimeout.EventTimeTimeout)(stateFunc)
 
     val query = ds.writeStream
       .outputMode("update")
       .format("console")
       .start()
 
-    val now = "2017-12-11 09:30:00"
     new Thread(new Runnable() {
       override def run(): Unit = {
-        /* -------------------------------------------
+        /* currentWatermarkMs = 0
+         * -------------------------------------------
          * Batch: 0
          * -------------------------------------------
-         * +---+-------------------+
-         * |uid|       max(created)|
-         * +---+-------------------+
-         * | a2|2017-12-11 09:30:01|
-         * | a1|2017-12-11 09:30:00|
-         * +---+-------------------+
+         * +-------------------+---+-------+
+         * |          eventTime|uid|   data|
+         * +-------------------+---+-------+
+         * |2017-12-11 09:30:01| a2|data2-2|
+         * |2017-12-11 09:30:00| a1|  data1|
+         * +-------------------+---+-------+
          */
-        input.addData((now, "a1", "data1"), (now, "a2", "data2-1"),
-          ("2017-12-11 09:30:01", "a2", "data2-2"))
+        input.addData(
+          ("2017-12-11 09:30:00", "a1", "data1"),   // ok
+          ("2017-12-11 09:30:00", "a2", "data2-1"), // before data2-2
+          ("2017-12-11 09:30:01", "a2", "data2-2")) // ok
         while (!query.isActive) {
           // wait the query to activate
         }
         Thread.sleep(20000)
 
-        /* -------------------------------------------
+        /* currentWatermarkMs = 2017-12-11 09:29:51
+         * -------------------------------------------
          * Batch: 1
          * -------------------------------------------
-         * +---+-------------------+
-         * |uid|       max(created)|
-         * +---+-------------------+
-         * | a2|2017-12-11 09:30:01|
-         * | a3|2017-12-11 09:30:10|
-         * +---+-------------------+
+         * +-------------------+---+-------+
+         * |          eventTime|uid|   data|
+         * +-------------------+---+-------+
+         * |2017-12-11 09:30:15| a3|data3-1|
+         * +-------------------+---+-------+
          */
         input.addData(
-          ("2017-12-11 09:29:59", "a2", "data2-0"), ("2017-12-11 09:30:10", "a3", "data3"))
+          ("2017-12-11 09:29:59", "a2", "data2-0"), // before data2-2
+          ("2017-12-11 09:30:15", "a3", "data3-1")) // ok
 
         Thread.sleep(20000)
 
-        /* -------------------------------------------
+        /* currentWatermarkMs = 2017-12-11 09:30:05
+         * -------------------------------------------
          * Batch: 2
          * -------------------------------------------
-         * +---+-------------------+
-         * |uid|       max(created)|
-         * +---+-------------------+
-         * | a4|2017-12-11 09:30:20|
-         * | a1|2017-12-11 09:30:00|
-         * +---+-------------------+
+         * +-------------------+---+-------+
+         * |          eventTime|uid|   data|
+         * +-------------------+---+-------+
+         * |2017-12-11 09:30:16| a3|data3-2|
+         * |2017-12-11 09:30:30| a4|  data4|
+         * +-------------------+---+-------+
          */
-        val timeOutOfWatermark = "2017-12-11 09:29:30"
-        input.addData((timeOutOfWatermark, "a1", "data10"),
-          ("2017-12-11 09:30:20", "a4", "data4"))
+        input.addData(
+          ("2017-12-11 09:30:04", "a1", "data10"),  // time out of watermark
+          ("2017-12-11 09:30:16", "a3", "data3-2"), // ok
+          ("2017-12-11 09:30:30", "a4", "data4"))   // ok
+
+        // Batch: 3, currentWatermarkMs = 2017-12-11 09:30:20
+
       }
     }).start()
 
