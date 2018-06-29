@@ -11,6 +11,10 @@ class WatermarkSuite extends StreamTest {
   val stateFunc = (key: String, values: Iterator[Document], oldState: GroupState[Timestamp]) => {
     val latest = values.maxBy(_.eventTime.getTime)
 
+    // the timeout would occur when the watermark advances beyond the set timestamp
+    println(oldState.getOption)
+    println(oldState.hasTimedOut)
+
     oldState.getOption.filter(_.after(latest.eventTime))
       .map { x =>
         // out of order data
