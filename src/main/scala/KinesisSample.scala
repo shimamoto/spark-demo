@@ -2,7 +2,7 @@ import com.amazonaws.services.kinesis.clientlibrary.lib.worker.InitialPositionIn
 import org.apache.spark._
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming._
-import kinesis.KinesisUtils
+import kinesis.{KinesisInitialPositions, KinesisInputDStream}
 
 object KinesisSample {
   def main(args: Array[String]): Unit = {
@@ -14,14 +14,15 @@ object KinesisSample {
     val dstream = spark.union(
       // TODO shards size
       (0 until 1).map { _ =>
-        KinesisUtils.createStream(spark,
-          kinesisAppName = "spark-demo-indexer",
-          streamName     = "spark-test",
-          endpointUrl    = "https://kinesis.us-east-1.amazonaws.com",
-          regionName     = "us-east-1",
-          storageLevel   = StorageLevel.MEMORY_AND_DISK,
-          checkpointInterval      = interval,
-          initialPositionInStream = InitialPositionInStream.LATEST)
+        KinesisInputDStream.builder.streamingContext(spark)
+          .checkpointAppName("spark-demo-indexer")
+          .streamName("spark-test")
+          .endpointUrl("https://kinesis.us-east-1.amazonaws.com")
+          .regionName("us-east-1")
+          .initialPosition(KinesisInitialPositions.fromKinesisInitialPosition(InitialPositionInStream.LATEST))
+          .checkpointInterval(interval)
+          .storageLevel(StorageLevel.MEMORY_AND_DISK)
+          .build
       }
     )
 
