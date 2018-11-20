@@ -1,3 +1,4 @@
+/*
 import org.apache.spark._
 import org.apache.spark.streaming._
 import org.elasticsearch.spark._
@@ -41,3 +42,4 @@ object StreamingSample {
     }
   }
 }
+*/

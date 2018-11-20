@@ -1,3 +1,4 @@
+/*
 import org.apache.spark.{SparkConf, SparkContext}
 
 import org.elasticsearch.spark._
@@ -35,3 +36,4 @@ object Sample {
   }
 
 }
+*/
